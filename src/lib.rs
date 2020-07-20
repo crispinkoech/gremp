@@ -12,15 +12,22 @@ pub struct Config {
 
 impl Config {
     pub fn new(
-        args: &[String],
-    ) -> Result<Self, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments")
-        }
+        mut args: impl Iterator<Item=String>,
+    ) -> Result<Self, &'static str> 
+    {
+        args.next();
 
-        let pattern= args[1].clone();
-        let filename = args[2].clone();
-        let case_sensitive = env::var("CASE_SENSITIVE").is_err();
+        let pattern = match args.next() {
+            Some(p) => p,
+            None => return Err("Didn't get pattern to match"),
+        };
+
+        let filename = match args.next() {
+            Some(f) => f,
+            None => return Err("Didn't get filename"),
+        };
+
+        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
 
         Ok(Self { pattern, filename, case_sensitive })
     }
@@ -30,31 +37,22 @@ pub fn search<'a>(
     pattern: &str,
     contents: &'a str,
 ) -> Vec<(usize, &'a str)> {
-    let mut results = Vec::new();
-
-    for (idx, line) in contents.lines().enumerate() {
-        if line.contains(pattern) {
-            results.push((idx + 1, line));
-        }
-    }
-
-    results
+    contents.lines()
+        .enumerate()
+        .map(|(idx, line)| (idx + 1, line))
+        .filter(|(_, line)| line.contains(pattern))
+        .collect()
 }
 
 pub fn search_case_insensitive<'a>(
     pattern: &str,
     contents: &'a str,
-)-> Vec<(usize, &'a str)> {
-    let mut results = Vec::new();
-    let pattern = pattern.to_lowercase();
-
-    for (idx, line) in contents.lines().enumerate() {
-        if line.to_lowercase().contains(&pattern) {
-            results.push((idx + 1, line));
-        }
-    }
-
-    results
+) -> Vec<(usize, &'a str)> {
+    contents.lines()
+        .enumerate()
+        .map(|(idx, line)| (idx + 1, line))
+        .filter(|(_, line)| line.to_lowercase().contains(&pattern.to_lowercase()))
+        .collect()
 }
 
 pub fn run(
@@ -81,16 +79,19 @@ mod tests {
 
     #[test]
     fn it_parses_cli_arguments() {
-        let mut args = vec![
+        let args = vec![
             String::from("/path/to/binary"),
         ];
 
-        let result = Config::new(&args);
+        let result = Config::new(args.into_iter());
         assert!(result.is_err(), "Missing all arguments");
 
-        args.push(String::from("pattern_here"));
+        let args = vec![
+            String::from("/path/to/binary"),
+            String::from("pattern_here"),
+        ];
 
-        let result = Config::new(&args);
+        let result = Config::new(args.into_iter());
         assert!(result.is_err(), "Missing file argument");
     }
 
@@ -102,7 +103,7 @@ mod tests {
             String::from("filename"),
         ];
 
-        let result = Config::new(&args);
+        let result = Config::new(args.into_iter());
         assert!(result.is_ok(), "Should have accepted configuration");
     }
 
@@ -114,7 +115,7 @@ mod tests {
             String::from("filename"),
         ];
 
-        let config = Config::new(&args).unwrap_or_else(|err| {
+        let config = Config::new(args.into_iter()).unwrap_or_else(|err| {
             panic!(err);
         });
 
@@ -154,10 +155,26 @@ mod tests {
         let args = vec![
             String::from("/path/to/binary"),
             String::from("pattern"),
-            String::from("poem.txt"),
+            String::from("sample.txt"),
         ];
 
-        let config = Config::new(&args).unwrap_or_else(|err| {
+        let config = Config::new(args.into_iter()).unwrap_or_else(|err| {
+            panic!(err);
+        });
+
+        let result = run(&config);
+        assert!(result.is_ok(), "Should have accepted input");
+
+        // Search case insensitive
+        env::set_var("CASE_INSENSITIVE", "1");
+
+        let args = vec![
+            String::from("/path/to/binary"),
+            String::from("pattern"),
+            String::from("sample.txt"),
+        ];
+
+        let config = Config::new(args.into_iter()).unwrap_or_else(|err| {
             panic!(err);
         });
 

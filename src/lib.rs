@@ -1,3 +1,9 @@
+/*!
+ * # Gremp
+ * 
+ * `gremp` is a utility for searching for a string pattern in a file.
+ */
+
 use std::{
     fs,
     env,
@@ -13,8 +19,7 @@ pub struct Config {
 impl Config {
     pub fn new(
         mut args: impl Iterator<Item=String>,
-    ) -> Result<Self, &'static str> 
-    {
+    ) -> Result<Self, &'static str> {
         args.next();
 
         let pattern = match args.next() {
@@ -33,6 +38,21 @@ impl Config {
     }
 }
 
+/// Searches for a token in a string. It is case sensitive.
+///
+/// # Examples
+/// 
+/// ```
+/// use gremp::*;
+/// 
+/// let pattern = "ust";
+/// let contents = "Rust. Effective.\nWithout DUST.";
+/// 
+/// let result = search(pattern, contents);
+/// 
+/// assert_eq!(result, vec![(1, "Rust. Effective.")]);
+/// ```
+
 pub fn search<'a>(
     pattern: &str,
     contents: &'a str,
@@ -44,6 +64,21 @@ pub fn search<'a>(
         .collect()
 }
 
+/// Searches for a token in a string. It is NOT case sensitive.
+///
+/// # Examples
+/// 
+/// ```
+/// use gremp::*;
+/// 
+/// let pattern = "ust";
+/// let contents = "Rust. Effective.\nWithout DUST.";
+/// 
+/// let result = search_case_insensitive(pattern, contents);
+/// 
+/// assert_eq!(result, vec![(1, "Rust. Effective."), (2, "Without DUST.")]);
+/// ```
+
 pub fn search_case_insensitive<'a>(
     pattern: &str,
     contents: &'a str,
@@ -54,6 +89,27 @@ pub fn search_case_insensitive<'a>(
         .filter(|(_, line)| line.to_lowercase().contains(&pattern.to_lowercase()))
         .collect()
 }
+
+/// Searches for a pattern in a file.
+///
+/// # Examples
+/// 
+/// ```
+/// use gremp::*;
+/// 
+/// let args = vec![
+///     String::from("/path/to/binary"),
+///     String::from("pattern"),
+///     String::from("sample.txt"),
+/// ];
+///
+/// let config = Config::new(args.into_iter()).unwrap_or_else(|err| {
+///     panic!(err);
+/// });
+///
+/// let result = run(&config);
+/// assert!(result.is_ok(), "Should have accepted input");
+/// ```
 
 pub fn run(
     config: &Config

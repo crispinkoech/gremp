@@ -1,11 +1,11 @@
-# mGrep #
+# Gremp #
 > A minimal, nifty grep implementation.
 
 ## TODO
 
 - [x] Tests util functions.
-- [ ] Robust documentation (Usage, how to install etc).
+- [-] Robust documentation (Usage, how to install etc).
 - [ ] Optimizations (e.g. read file into buffers or stream from a file).
 - [ ] Capability to grep multiple files/directory.
 - [ ] Command line flags for options.
-- [ ] Publish to a publish registry?? (crates.io)
+- [x] Publish to a publish registry?? (crates.io)

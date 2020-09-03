@@ -3,7 +3,7 @@ use std::{
     env,
 };
 
-use mgrep::Config;
+use gremp::Config;
 
 fn main() {
     let args = env::args();
@@ -13,7 +13,7 @@ fn main() {
         process::exit(1);
     });
 
-    if let Err(e) = mgrep::run(&config) {
+    if let Err(e) = gremp::run(&config) {
         eprintln!("Encountered an error: {}", e);
         process::exit(1);
     }

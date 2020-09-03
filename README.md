@@ -4,7 +4,7 @@
 ## TODO
 
 - [x] Tests util functions.
-- [-] Robust documentation (Usage, how to install etc).
+- [x] Robust documentation (Usage, how to install etc).
 - [ ] Optimizations (e.g. read file into buffers or stream from a file).
 - [ ] Capability to grep multiple files/directory.
 - [ ] Command line flags for options.
